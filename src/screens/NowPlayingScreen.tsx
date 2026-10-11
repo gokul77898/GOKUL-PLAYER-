@@ -34,6 +34,8 @@ import {
   Heart,
   ListMusic,
   X,
+  Timer,
+  Gauge,
 } from 'lucide-react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useStore} from '../store';
@@ -42,6 +44,8 @@ import {ArtworkImage} from '../components/ArtworkImage';
 import {NowPlayingProgressBar} from '../components/NowPlayingProgressBar';
 import {LiquidGlass} from '../components/LiquidGlass';
 import {Forest3DBackground} from '../components/Forest3DBackground';
+import {AudioVisualizer} from '../components/AudioVisualizer';
+import {SleepTimerModal} from '../components/SleepTimerModal';
 import {TrackRow} from '../components/TrackRow';
 import {Track} from '../types';
 import {spacing, typography, radii, motion} from '../theme';
@@ -68,8 +72,19 @@ export default function NowPlayingScreen() {
   const cycleRepeat = useStore(s => s.cycleRepeat);
   const toggleShuffle = useStore(s => s.toggleShuffle);
   const toggleFavorite = useStore(s => s.toggleFavorite);
+  const playbackRate = useStore(s => s.playbackRate);
+  const setPlaybackRate = useStore(s => s.setPlaybackRate);
+  const sleepTimerActive = useStore(s => s.sleepTimerActive);
 
   const [showQueue, setShowQueue] = useState(false);
+  const [showSleepTimer, setShowSleepTimer] = useState(false);
+
+  const handleCycleRate = useCallback(() => {
+    const rates = [1.0, 1.25, 1.5, 2.0, 0.75];
+    const currIdx = rates.indexOf(playbackRate);
+    const nextRate = rates[(currIdx + 1) % rates.length];
+    setPlaybackRate(nextRate);
+  }, [playbackRate, setPlaybackRate]);
 
   // 2.5D Artwork dimensional scale when playing vs paused
   const artworkScale = useSharedValue(1);
@@ -154,12 +169,33 @@ export default function NowPlayingScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={() => setShowQueue(true)}
-            hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}
-            style={styles.iconButton}>
-            <ListMusic size={22} color={theme.text.secondary} strokeWidth={2} />
-          </TouchableOpacity>
+          <View style={styles.topRightActions}>
+            <TouchableOpacity
+              onPress={() => setShowSleepTimer(true)}
+              hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}
+              style={[
+                styles.iconButton,
+                sleepTimerActive && {
+                  backgroundColor: theme.dark
+                    ? 'rgba(128, 85, 255, 0.25)'
+                    : 'rgba(112, 71, 245, 0.16)',
+                  borderRadius: radii.full,
+                },
+              ]}>
+              <Timer
+                size={22}
+                color={sleepTimerActive ? theme.accent.primary : theme.text.secondary}
+                strokeWidth={sleepTimerActive ? 2.5 : 2}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setShowQueue(true)}
+              hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}
+              style={styles.iconButton}>
+              <ListMusic size={22} color={theme.text.secondary} strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ─── Artwork Section (Cinematic 2.5D Vinyl Elevation) ──── */}
@@ -172,6 +208,11 @@ export default function NowPlayingScreen() {
               showShadow
             />
           </Animated.View>
+        </View>
+
+        {/* ─── Live Dancing Audio Spectrum Visualizer ────────────── */}
+        <View style={styles.visualizerContainer}>
+          <AudioVisualizer height={28} />
         </View>
 
         {/* ─── Track Info Section ─────────────────────────────────── */}
@@ -214,6 +255,21 @@ export default function NowPlayingScreen() {
         {/* ─── Isolated High-Performance Scrubber ─────────────────── */}
         <View style={styles.progressContainer}>
           <NowPlayingProgressBar />
+        </View>
+
+        {/* ─── Playback Speed Selector ────────────────────────────── */}
+        <View style={styles.speedRow}>
+          <TouchableOpacity
+            onPress={handleCycleRate}
+            activeOpacity={0.8}
+            hitSlop={{top: 8, bottom: 8, left: 12, right: 12}}>
+            <LiquidGlass level="subtle" radius={radii.full} style={styles.speedPill}>
+              <Gauge size={13} color={theme.accent.primary} strokeWidth={2.4} />
+              <Text style={[styles.speedText, {color: theme.accent.primary}]}>
+                {playbackRate.toFixed(2).replace(/\.00$/, '')}x
+              </Text>
+            </LiquidGlass>
+          </TouchableOpacity>
         </View>
 
         {/* ─── Floating Liquid Glass Controls Deck ────────────────── */}
@@ -357,6 +413,12 @@ export default function NowPlayingScreen() {
           </LiquidGlass>
         </View>
       </Modal>
+
+      {/* ─── Sleep Timer Modal ───────────────────────────────────── */}
+      <SleepTimerModal
+        visible={showSleepTimer}
+        onClose={() => setShowSleepTimer(false)}
+      />
     </Forest3DBackground>
   );
 }
@@ -376,6 +438,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['5'],
     paddingTop: spacing['2'],
     height: 52,
+  },
+  topRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing['1'],
   },
   iconButton: {
     width: 44,
@@ -417,6 +484,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  visualizerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing['1'],
+  },
   infoSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,6 +522,23 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     paddingVertical: spacing['1'],
+  },
+  speedRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing['1'],
+  },
+  speedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing['3.5'],
+    paddingVertical: spacing['1.5'],
+    gap: spacing['1.5'],
+  },
+  speedText: {
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    fontFamily: typography.mono,
   },
   controlsOuter: {
     paddingHorizontal: spacing['5'],

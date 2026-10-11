@@ -25,6 +25,8 @@ import {
   ChevronLeft,
   Play,
   Music2,
+  Flame,
+  Sparkles,
 } from 'lucide-react-native';
 import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
@@ -47,6 +49,22 @@ export default function PlaylistsScreen() {
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
+
+  const heavyRotation = React.useMemo(
+    () =>
+      [...tracks]
+        .sort((a, b) => b.playCount - a.playCount)
+        .slice(0, 15),
+    [tracks],
+  );
+
+  const forgottenGems = React.useMemo(
+    () =>
+      [...tracks]
+        .filter(t => t.playCount === 0 || !t.lastPlayedAt)
+        .slice(0, 15),
+    [tracks],
+  );
 
   const handleCreate = useCallback(async () => {
     const name = newName.trim();
@@ -121,12 +139,72 @@ export default function PlaylistsScreen() {
           paddingBottom: LAYOUT.tabBarHeight + LAYOUT.miniPlayerHeight + spacing['10'],
         }}
         ListHeaderComponent={
-          <FavoritesHeroCard
-            count={favorites.length}
-            tracks={favorites}
-            onPlay={playTrack}
-            theme={theme}
-          />
+          <>
+            <FavoritesHeroCard
+              count={favorites.length}
+              tracks={favorites}
+              onPlay={playTrack}
+              theme={theme}
+            />
+            {/* Smart Auto-Playlists Row */}
+            <View style={styles.smartRow}>
+              <LiquidGlass
+                level="card"
+                radius={radii.xl}
+                style={styles.smartCard}
+                onPress={() =>
+                  setSelectedPlaylist({
+                    id: 'smart_heavy',
+                    name: '🔥 Heavy Rotation',
+                    description: 'Your most played tracks',
+                    trackIds: heavyRotation.map(t => t.id),
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                  })
+                }>
+                <View style={[styles.smartIconBox, {backgroundColor: 'rgba(255, 120, 40, 0.18)'}]}>
+                  <Flame size={20} color="#FF7828" strokeWidth={2.4} />
+                </View>
+                <Text style={[styles.smartTitle, {color: theme.text.primary}]}>
+                  Heavy Rotation
+                </Text>
+                <Text style={[styles.smartSub, {color: theme.dark ? '#A5A8B7' : '#555869'}]}>
+                  {heavyRotation.length} tracks
+                </Text>
+              </LiquidGlass>
+
+              <LiquidGlass
+                level="card"
+                radius={radii.xl}
+                style={styles.smartCard}
+                onPress={() =>
+                  setSelectedPlaylist({
+                    id: 'smart_gems',
+                    name: '💎 Forgotten Gems',
+                    description: 'Tracks to rediscover',
+                    trackIds: forgottenGems.map(t => t.id),
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                  })
+                }>
+                <View style={[styles.smartIconBox, {backgroundColor: 'rgba(60, 200, 255, 0.18)'}]}>
+                  <Sparkles size={20} color="#3CC8FF" strokeWidth={2.4} />
+                </View>
+                <Text style={[styles.smartTitle, {color: theme.text.primary}]}>
+                  Forgotten Gems
+                </Text>
+                <Text style={[styles.smartSub, {color: theme.dark ? '#A5A8B7' : '#555869'}]}>
+                  {forgottenGems.length} tracks
+                </Text>
+              </LiquidGlass>
+            </View>
+
+            <View style={styles.sectionTitleRow}>
+              <Text style={[styles.sectionTitle, {color: theme.text.primary}]}>
+                Custom Playlists
+              </Text>
+            </View>
+          </>
         }
         renderItem={({item}) => {
           const firstTrack = tracks.find(t => item.trackIds.includes(t.id));
@@ -393,6 +471,41 @@ const styles = StyleSheet.create({
     marginTop: spacing['1'],
     padding: spacing['4'],
     gap: spacing['3.5'],
+  },
+  smartRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing['4'],
+    gap: spacing['3'],
+    marginBottom: spacing['4'],
+  },
+  smartCard: {
+    flex: 1,
+    padding: spacing['3.5'],
+  },
+  smartIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing['2'],
+  },
+  smartTitle: {
+    fontSize: typography.sm,
+    fontWeight: typography.bold,
+  },
+  smartSub: {
+    fontSize: typography.xs,
+    marginTop: 2,
+  },
+  sectionTitleRow: {
+    paddingHorizontal: spacing['5'],
+    marginBottom: spacing['2.5'],
+  },
+  sectionTitle: {
+    fontSize: typography.base,
+    fontWeight: typography.bold,
+    letterSpacing: -0.2,
   },
   favIconBox: {
     width: 48,

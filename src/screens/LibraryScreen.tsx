@@ -13,6 +13,7 @@ import {
   StatusBar,
   Modal,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -23,12 +24,14 @@ import {
   SlidersHorizontal,
   Check,
   Heart,
+  FolderPlus,
 } from 'lucide-react-native';
 import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
 import {TrackRow} from '../components/TrackRow';
 import {LiquidGlass} from '../components/LiquidGlass';
 import {Forest3DBackground} from '../components/Forest3DBackground';
+import {importMusicFromDevice} from '../services/ImportService';
 import {Track} from '../types';
 import {spacing, typography, radii, LAYOUT} from '../theme';
 
@@ -51,11 +54,25 @@ export default function LibraryScreen() {
   const theme = useTheme();
   const tracks = useStore(s => s.tracks);
   const currentTrack = useStore(s => s.currentTrack);
+  const loadTracks = useStore(s => s.loadTracks);
 
   const [query, setQuery] = useState('');
   const [filterChip, setFilterChip] = useState<FilterChip>('all');
   const [sortKey, setSortKey] = useState<SortKey>('title');
   const [showSortModal, setShowSortModal] = useState(false);
+
+  const handleImportMusic = useCallback(async () => {
+    const res = await importMusicFromDevice();
+    if (res.success && res.count > 0) {
+      await loadTracks();
+      Alert.alert(
+        'Music Imported',
+        `Successfully added ${res.count} track${res.count === 1 ? '' : 's'} to your GOKUL Player offline library!`,
+      );
+    } else if (res.error) {
+      Alert.alert('Import Notice', res.error);
+    }
+  }, [loadTracks]);
 
   const filtered = useMemo(() => {
     let list = [...tracks];
@@ -142,17 +159,31 @@ export default function LibraryScreen() {
           </Text>
         </View>
 
-        {/* Sort Button */}
-        <LiquidGlass
-          level="subtle"
-          radius={radii.full}
-          style={styles.sortButton}
-          onPress={() => setShowSortModal(true)}>
-          <ArrowUpDown size={16} color={theme.text.primary} strokeWidth={2} />
-          <Text style={[styles.sortBtnText, {color: theme.text.primary}]}>
-            Sort
-          </Text>
-        </LiquidGlass>
+        <View style={styles.headerRightActions}>
+          {/* Import Music from Device */}
+          <LiquidGlass
+            level="subtle"
+            radius={radii.full}
+            style={styles.headerActionBtn}
+            onPress={handleImportMusic}>
+            <FolderPlus size={15} color={theme.accent.primary} strokeWidth={2.2} />
+            <Text style={[styles.headerActionText, {color: theme.accent.primary}]}>
+              Import
+            </Text>
+          </LiquidGlass>
+
+          {/* Sort Button */}
+          <LiquidGlass
+            level="subtle"
+            radius={radii.full}
+            style={styles.headerActionBtn}
+            onPress={() => setShowSortModal(true)}>
+            <ArrowUpDown size={15} color={theme.text.primary} strokeWidth={2} />
+            <Text style={[styles.headerActionText, {color: theme.text.primary}]}>
+              Sort
+            </Text>
+          </LiquidGlass>
+        </View>
       </View>
 
       {/* ─── Search Bar (Liquid Glass) ──────────────────────────── */}
@@ -321,14 +352,19 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: typography.medium,
   },
-  sortButton: {
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing['2'],
+  },
+  headerActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing['1.5'],
-    paddingHorizontal: spacing['3.5'],
-    paddingVertical: spacing['2'],
+    paddingHorizontal: spacing['3'],
+    paddingVertical: spacing['1.5'],
   },
-  sortBtnText: {
+  headerActionText: {
     fontSize: typography.xs,
     fontWeight: typography.bold,
   },

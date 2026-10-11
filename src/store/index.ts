@@ -44,6 +44,13 @@ interface PlayerSlice {
   skipPrevious: () => Promise<void>;
   seekTo: (seconds: number) => Promise<void>;
   cycleRepeat: () => Promise<void>;
+  playbackRate: number;
+  setPlaybackRate: (rate: number) => Promise<void>;
+  sleepTimerMinutes: number | null;
+  sleepTimerRemainingSec: number | null;
+  sleepTimerActive: boolean;
+  setSleepTimer: (minutes: number) => void;
+  clearSleepTimer: () => void;
 }
 
 // ─── Settings Slice ───────────────────────────────────────────────────────────
@@ -55,6 +62,8 @@ interface SettingsSlice {
 
 // ─── Combined Store ───────────────────────────────────────────────────────────
 type AppStore = LibrarySlice & PlayerSlice & SettingsSlice;
+
+let _sleepInterval: ReturnType<typeof setInterval> | null = null;
 
 export const useStore = create<AppStore>((set, get) => ({
   // ── Library ──────────────────────────────────────────────────────────────
@@ -130,6 +139,10 @@ export const useStore = create<AppStore>((set, get) => ({
   shuffleMode: 'off',
   queue: [],
   queueIndex: 0,
+  playbackRate: 1.0,
+  sleepTimerMinutes: null,
+  sleepTimerRemainingSec: null,
+  sleepTimerActive: false,
 
   setCurrentTrack: track => set({currentTrack: track}),
   setIsPlaying: playing => set({isPlaying: playing}),
@@ -202,6 +215,61 @@ export const useStore = create<AppStore>((set, get) => ({
     } else {
       set({shuffleMode: next});
     }
+  },
+
+  setPlaybackRate: async (rate: number) => {
+    await PlayerSvc.setRate(rate);
+    set({playbackRate: rate});
+  },
+
+  setSleepTimer: (minutes: number) => {
+    if (_sleepInterval) {
+      clearInterval(_sleepInterval);
+      _sleepInterval = null;
+    }
+    const totalSec = minutes * 60;
+    set({
+      sleepTimerMinutes: minutes,
+      sleepTimerRemainingSec: totalSec,
+      sleepTimerActive: true,
+    });
+
+    _sleepInterval = setInterval(async () => {
+      const remaining = get().sleepTimerRemainingSec;
+      if (remaining === null || remaining <= 1) {
+        if (_sleepInterval) clearInterval(_sleepInterval);
+        _sleepInterval = null;
+        await PlayerSvc.pause();
+        await PlayerSvc.setVolume(1.0);
+        set({
+          sleepTimerActive: false,
+          sleepTimerRemainingSec: null,
+          sleepTimerMinutes: null,
+          isPlaying: false,
+        });
+      } else {
+        const nextSec = remaining - 1;
+        // Smooth audio fade-out in final 15 seconds
+        if (nextSec <= 15) {
+          const fadeVol = Math.max(0.05, nextSec / 15);
+          PlayerSvc.setVolume(fadeVol).catch(() => {});
+        }
+        set({sleepTimerRemainingSec: nextSec});
+      }
+    }, 1000);
+  },
+
+  clearSleepTimer: () => {
+    if (_sleepInterval) {
+      clearInterval(_sleepInterval);
+      _sleepInterval = null;
+    }
+    PlayerSvc.setVolume(1.0).catch(() => {});
+    set({
+      sleepTimerActive: false,
+      sleepTimerRemainingSec: null,
+      sleepTimerMinutes: null,
+    });
   },
 
   // ── Settings ─────────────────────────────────────────────────────────────

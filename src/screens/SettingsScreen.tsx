@@ -25,11 +25,18 @@ import {
   WifiOff,
   ShieldCheck,
   Sparkles,
+  FolderPlus,
+  Timer,
+  Activity,
+  Flame,
+  ChevronRight,
 } from 'lucide-react-native';
 import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
 import {LiquidGlass} from '../components/LiquidGlass';
 import {Forest3DBackground} from '../components/Forest3DBackground';
+import {SleepTimerModal} from '../components/SleepTimerModal';
+import {importMusicFromDevice} from '../services/ImportService';
 import {ThemeMode} from '../types';
 import {spacing, typography, radii, LAYOUT} from '../theme';
 
@@ -45,14 +52,33 @@ export default function SettingsScreen() {
   const themeMode = useStore(s => s.themeMode);
   const setThemeMode = useStore(s => s.setThemeMode);
   const loadTracks = useStore(s => s.loadTracks);
+  const sleepTimerActive = useStore(s => s.sleepTimerActive);
+  const sleepTimerMinutes = useStore(s => s.sleepTimerMinutes);
+
+  const [showSleepTimer, setShowSleepTimer] = React.useState(false);
 
   const totalSize = tracks.reduce((acc, t) => acc + t.fileSizeBytes, 0);
   const totalMB = (totalSize / (1024 * 1024)).toFixed(1);
+  const totalPlays = tracks.reduce((acc, t) => acc + t.playCount, 0);
+  const topTrack = [...tracks].sort((a, b) => b.playCount - a.playCount)[0];
 
   const handleRescan = useCallback(async () => {
     await loadTracks();
     Alert.alert('Library Sync', `Verified ${tracks.length} local bundled audio tracks.`);
   }, [loadTracks, tracks.length]);
+
+  const handleImportMusic = useCallback(async () => {
+    const res = await importMusicFromDevice();
+    if (res.success && res.count > 0) {
+      await loadTracks();
+      Alert.alert(
+        'Music Imported',
+        `Successfully added ${res.count} track${res.count === 1 ? '' : 's'} to your GOKUL Player offline library!`,
+      );
+    } else if (res.error) {
+      Alert.alert('Import Notice', res.error);
+    }
+  }, [loadTracks]);
 
   return (
     <Forest3DBackground style={styles.container}>
@@ -170,6 +196,25 @@ export default function SettingsScreen() {
           <View style={[styles.divider, {backgroundColor: theme.border.subtle}]} />
 
           <TouchableOpacity
+            onPress={handleImportMusic}
+            style={styles.actionRow}>
+            <View style={styles.statLeft}>
+              <FolderPlus size={18} color={theme.accent.primary} strokeWidth={2} />
+              <View>
+                <Text style={[styles.actionLabel, {color: theme.text.primary}]}>
+                  Import Songs from Device
+                </Text>
+                <Text style={[styles.statSub, {color: theme.text.tertiary}]}>
+                  Add MP3, FLAC, WAV from phone storage
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={theme.text.tertiary} />
+          </TouchableOpacity>
+
+          <View style={[styles.divider, {backgroundColor: theme.border.subtle}]} />
+
+          <TouchableOpacity
             onPress={handleRescan}
             style={styles.actionRow}>
             <View style={styles.statLeft}>
@@ -179,6 +224,87 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </TouchableOpacity>
+        </LiquidGlass>
+
+        {/* ─── Audio Tools & Sleep Timer ────────────────────────── */}
+        <Text style={[styles.sectionTitle, {color: theme.text.tertiary}]}>
+          PLAYBACK & AUDIO TOOLS
+        </Text>
+        <LiquidGlass level="card" radius={radii.xl} style={styles.card}>
+          <TouchableOpacity
+            onPress={() => setShowSleepTimer(true)}
+            style={styles.actionRow}>
+            <View style={styles.statLeft}>
+              <Timer size={20} color={theme.accent.primary} strokeWidth={2} />
+              <View>
+                <Text style={[styles.statLabel, {color: theme.text.primary}]}>
+                  Sleep Timer
+                </Text>
+                <Text style={[styles.statSub, {color: theme.text.tertiary}]}>
+                  {sleepTimerActive && sleepTimerMinutes
+                    ? `Active (${sleepTimerMinutes} min timer)`
+                    : 'Auto fade-out & stop playback'}
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={theme.text.tertiary} />
+          </TouchableOpacity>
+        </LiquidGlass>
+
+        {/* ─── Offline Listening Insights ───────────────────────── */}
+        <Text style={[styles.sectionTitle, {color: theme.text.tertiary}]}>
+          LISTENING INSIGHTS
+        </Text>
+        <LiquidGlass level="card" radius={radii.xl} style={styles.card}>
+          <View style={styles.statRow}>
+            <View style={styles.statLeft}>
+              <Flame size={18} color="#FF7828" strokeWidth={2.2} />
+              <Text style={[styles.statLabel, {color: theme.text.primary}]}>
+                Total Plays
+              </Text>
+            </View>
+            <Text style={[styles.statValue, {color: theme.text.primary}]}>
+              {totalPlays} plays
+            </Text>
+          </View>
+
+          <View style={[styles.divider, {backgroundColor: theme.border.subtle}]} />
+
+          <View style={styles.statRow}>
+            <View style={styles.statLeft}>
+              <Activity size={18} color="#10B981" strokeWidth={2.2} />
+              <Text style={[styles.statLabel, {color: theme.text.primary}]}>
+                Est. Listening Time
+              </Text>
+            </View>
+            <Text style={[styles.statValue, {color: theme.text.primary}]}>
+              ~{Math.round(totalPlays * 3.4)} mins
+            </Text>
+          </View>
+
+          {topTrack && topTrack.playCount > 0 && (
+            <>
+              <View style={[styles.divider, {backgroundColor: theme.border.subtle}]} />
+              <View style={styles.statRow}>
+                <View style={styles.statLeft}>
+                  <Sparkles size={18} color={theme.accent.primary} strokeWidth={2} />
+                  <View style={{flex: 1, marginRight: 8}}>
+                    <Text style={[styles.statLabel, {color: theme.text.primary}]}>
+                      Top Song
+                    </Text>
+                    <Text
+                      style={[styles.statSub, {color: theme.text.secondary}]}
+                      numberOfLines={1}>
+                      {topTrack.title}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.statValue, {color: theme.accent.primary}]}>
+                  {topTrack.playCount}x
+                </Text>
+              </View>
+            </>
+          )}
         </LiquidGlass>
 
         {/* ─── Privacy & Offline Operation ──────────────────────── */}
@@ -250,6 +376,12 @@ export default function SettingsScreen() {
           </View>
         </LiquidGlass>
       </ScrollView>
+
+      {/* ─── Sleep Timer Modal ───────────────────────────────────── */}
+      <SleepTimerModal
+        visible={showSleepTimer}
+        onClose={() => setShowSleepTimer(false)}
+      />
     </Forest3DBackground>
   );
 }

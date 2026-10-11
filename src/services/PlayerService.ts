@@ -161,6 +161,18 @@ export async function getProgress(): Promise<{position: number; duration: number
   return TrackPlayer.getProgress();
 }
 
+export async function setRate(rate: number): Promise<void> {
+  await TrackPlayer.setRate(rate);
+}
+
+export async function setVolume(volume: number): Promise<void> {
+  await TrackPlayer.setVolume(Math.max(0, Math.min(1, volume)));
+}
+
+export async function getVolume(): Promise<number> {
+  return TrackPlayer.getVolume();
+}
+
 export async function stop(): Promise<void> {
   await TrackPlayer.stop();
 }
@@ -180,6 +192,9 @@ export default {
   skipToPrevious,
   seekTo,
   setRepeatMode,
+  setRate,
+  setVolume,
+  getVolume,
   getState,
   getCurrentTrack,
   getProgress,
