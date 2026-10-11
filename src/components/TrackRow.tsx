@@ -80,14 +80,32 @@ export const TrackRow = React.memo(
             {
               backgroundColor: isCurrentTrack
                 ? theme.dark
-                  ? 'rgba(128, 85, 255, 0.12)'
-                  : 'rgba(112, 71, 245, 0.08)'
-                : 'transparent',
-              borderColor: isCurrentTrack ? theme.border.default : 'transparent',
-              borderWidth: isCurrentTrack ? 1 : 0,
+                  ? 'rgba(128, 85, 255, 0.26)'
+                  : 'rgba(112, 71, 245, 0.20)'
+                : theme.dark
+                  ? 'rgba(22, 26, 38, 0.52)'
+                  : 'rgba(255, 255, 255, 0.65)',
+              borderColor: isCurrentTrack
+                ? theme.accent.primary
+                : theme.dark
+                  ? 'rgba(255, 255, 255, 0.12)'
+                  : 'rgba(255, 255, 255, 0.70)',
+              borderWidth: 1.2,
               borderRadius: radii.xl,
             },
           ]}>
+          {/* Top Specular Edge Line */}
+          <View
+            style={[
+              styles.rowSpecular,
+              {
+                backgroundColor: theme.dark
+                  ? 'rgba(255, 255, 255, 0.22)'
+                  : 'rgba(255, 255, 255, 0.85)',
+              },
+            ]}
+            pointerEvents="none"
+          />
           {/* Index or Artwork */}
           {showIndex && index !== undefined ? (
             <View style={styles.indexContainer}>
@@ -159,13 +177,22 @@ export const TrackRow = React.memo(
 
 const styles = StyleSheet.create({
   rowContainer: {
-    marginVertical: 2,
+    marginVertical: 3.5,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing['3.5'],
     paddingVertical: spacing['2.5'],
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  rowSpecular: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1.2,
   },
   artwork: {
     marginRight: spacing['3.5'],

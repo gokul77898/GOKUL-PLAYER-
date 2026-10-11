@@ -29,6 +29,7 @@ import {
 import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
 import {LiquidGlass} from '../components/LiquidGlass';
+import {Forest3DBackground} from '../components/Forest3DBackground';
 import {TrackRow} from '../components/TrackRow';
 import {ArtworkImage} from '../components/ArtworkImage';
 import {Playlist, Track} from '../types';
@@ -86,7 +87,7 @@ export default function PlaylistsScreen() {
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -224,7 +225,7 @@ export default function PlaylistsScreen() {
           </LiquidGlass>
         </View>
       </Modal>
-    </View>
+    </Forest3DBackground>
   );
 }
 
@@ -281,7 +282,7 @@ function PlaylistDetail({
   onPlay: (t: Track, q: Track[]) => void;
 }) {
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -346,7 +347,7 @@ function PlaylistDetail({
           )}
         />
       )}
-    </View>
+    </Forest3DBackground>
   );
 }
 

@@ -30,6 +30,7 @@ import {useTheme} from '../hooks/useTheme';
 import {ArtworkImage} from '../components/ArtworkImage';
 import {LiquidGlass} from '../components/LiquidGlass';
 import {TrackRow} from '../components/TrackRow';
+import {Forest3DBackground} from '../components/Forest3DBackground';
 import {Track} from '../types';
 import {spacing, typography, radii, LAYOUT, motion} from '../theme';
 
@@ -78,21 +79,11 @@ export default function HomeScreen() {
   }, [tracks, playTrack]);
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
         translucent
-      />
-
-      {/* Atmospheric Header Flare */}
-      <LinearGradient
-        colors={[
-          theme.dark ? 'rgba(128, 85, 255, 0.22)' : 'rgba(112, 71, 245, 0.12)',
-          'transparent',
-        ]}
-        style={styles.headerGlow}
-        pointerEvents="none"
       />
 
       <SafeAreaView edges={['top']} style={styles.safeTop} />
@@ -105,15 +96,15 @@ export default function HomeScreen() {
         }}>
         {/* ─── Brand & Header Row ───────────────────────────────── */}
         <View style={styles.brandRow}>
-          <View style={styles.brandBadge}>
+          <LiquidGlass level="subtle" radius={radii.full} style={styles.brandBadge}>
             <View style={[styles.brandDot, {backgroundColor: theme.accent.primary}]} />
             <Text style={[styles.brandTitle, {color: theme.accent.primary}]}>
               GOKUL PLAYER
             </Text>
-            <Text style={[styles.brandTag, {color: theme.text.tertiary}]}>
+            <Text style={[styles.brandTag, {color: theme.dark ? '#A5A8B7' : '#45495E'}]}>
               • OFFLINE
             </Text>
-          </View>
+          </LiquidGlass>
         </View>
 
         <View style={styles.heroSection}>
@@ -187,7 +178,7 @@ export default function HomeScreen() {
                   onPress={() => playTrack(item, recentlyPlayed)}>
                   <ArtworkImage
                     track={item}
-                    size={CARD_W}
+                    size={CARD_W - spacing['5']}
                     radius={radii.lg}
                     showShadow
                   />
@@ -197,7 +188,10 @@ export default function HomeScreen() {
                     {item.title}
                   </Text>
                   <Text
-                    style={[styles.cardArtist, {color: theme.text.secondary}]}
+                    style={[
+                      styles.cardArtist,
+                      {color: theme.dark ? '#A5A8B7' : '#45495E'},
+                    ]}
                     numberOfLines={1}>
                     {item.artist}
                   </Text>
@@ -232,7 +226,7 @@ export default function HomeScreen() {
                   onPress={() => playTrack(item, favorites)}>
                   <ArtworkImage
                     track={item}
-                    size={CARD_W}
+                    size={CARD_W - spacing['5']}
                     radius={radii.lg}
                     showShadow
                   />
@@ -242,7 +236,10 @@ export default function HomeScreen() {
                     {item.title}
                   </Text>
                   <Text
-                    style={[styles.cardArtist, {color: theme.text.secondary}]}
+                    style={[
+                      styles.cardArtist,
+                      {color: theme.dark ? '#A5A8B7' : '#45495E'},
+                    ]}
                     numberOfLines={1}>
                     {item.artist}
                   </Text>
@@ -276,7 +273,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </Forest3DBackground>
   );
 }
 

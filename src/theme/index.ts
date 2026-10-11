@@ -64,7 +64,7 @@ export const typography = {
   medium: '500' as const,
   semibold: '600' as const,
   bold: '700' as const,
-  heavy: '800' as const,
+  heavy: '700' as const, // Prevents Android simulated bold stroke outline artifacts
 
   sans: Platform.select({ios: 'SF Pro Display', android: 'sans-serif'}),
   mono: Platform.select({ios: 'SF Mono', android: 'monospace'}),
@@ -229,10 +229,10 @@ export const darkTheme = {
   },
 
   tabBar: {
-    bg: 'rgba(12, 14, 20, 0.92)',
-    border: 'rgba(255, 255, 255, 0.08)',
+    bg: 'rgba(12, 14, 22, 0.78)',
+    border: 'rgba(255, 255, 255, 0.12)',
     active: palette.violetLight,
-    inactive: '#626577',
+    inactive: '#7E8299',
     indicator: 'rgba(128, 85, 255, 0.20)',
   },
 
@@ -264,8 +264,8 @@ export const lightTheme = {
 
   text: {
     primary: '#171721',
-    secondary: '#656575',
-    tertiary: '#9393A3',
+    secondary: '#3A3E50',
+    tertiary: '#585C70',
     inverse: palette.snow,
     accent: palette.lightVioletPrimary,
     onDark: palette.white,
@@ -302,10 +302,10 @@ export const lightTheme = {
   },
 
   tabBar: {
-    bg: 'rgba(248, 247, 253, 0.94)',
-    border: 'rgba(0, 0, 0, 0.06)',
+    bg: 'rgba(255, 255, 255, 0.78)',
+    border: 'rgba(255, 255, 255, 0.85)',
     active: palette.lightVioletPrimary,
-    inactive: '#8B8C9C',
+    inactive: '#5D6072',
     indicator: 'rgba(112, 71, 245, 0.12)',
   },
 

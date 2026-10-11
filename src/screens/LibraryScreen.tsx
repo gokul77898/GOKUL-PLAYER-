@@ -28,6 +28,7 @@ import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
 import {TrackRow} from '../components/TrackRow';
 import {LiquidGlass} from '../components/LiquidGlass';
+import {Forest3DBackground} from '../components/Forest3DBackground';
 import {Track} from '../types';
 import {spacing, typography, radii, LAYOUT} from '../theme';
 
@@ -122,7 +123,7 @@ export default function LibraryScreen() {
   );
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -294,7 +295,7 @@ export default function LibraryScreen() {
           </LiquidGlass>
         </View>
       </Modal>
-    </View>
+    </Forest3DBackground>
   );
 }
 

@@ -41,6 +41,7 @@ import {useTheme} from '../hooks/useTheme';
 import {ArtworkImage} from '../components/ArtworkImage';
 import {NowPlayingProgressBar} from '../components/NowPlayingProgressBar';
 import {LiquidGlass} from '../components/LiquidGlass';
+import {Forest3DBackground} from '../components/Forest3DBackground';
 import {TrackRow} from '../components/TrackRow';
 import {Track} from '../types';
 import {spacing, typography, radii, motion} from '../theme';
@@ -119,7 +120,7 @@ export default function NowPlayingScreen() {
     : ['#E6DEFF', '#F1EDFC', theme.bg.primary];
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -356,7 +357,7 @@ export default function NowPlayingScreen() {
           </LiquidGlass>
         </View>
       </Modal>
-    </View>
+    </Forest3DBackground>
   );
 }
 

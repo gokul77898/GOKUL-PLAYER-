@@ -29,6 +29,7 @@ import {
 import {useStore} from '../store';
 import {useTheme} from '../hooks/useTheme';
 import {LiquidGlass} from '../components/LiquidGlass';
+import {Forest3DBackground} from '../components/Forest3DBackground';
 import {ThemeMode} from '../types';
 import {spacing, typography, radii, LAYOUT} from '../theme';
 
@@ -54,7 +55,7 @@ export default function SettingsScreen() {
   }, [loadTracks, tracks.length]);
 
   return (
-    <View style={[styles.container, {backgroundColor: theme.bg.primary}]}>
+    <Forest3DBackground style={styles.container}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
@@ -249,7 +250,7 @@ export default function SettingsScreen() {
           </View>
         </LiquidGlass>
       </ScrollView>
-    </View>
+    </Forest3DBackground>
   );
 }
 
